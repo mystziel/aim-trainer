@@ -8,10 +8,42 @@ public class SplashScreenPanel extends JPanel {
     private boolean growing = true;
     private Timer timer;
 
-    public SplashScreenPanel() {
+    public SplashScreenPanel(GameController controller) {
+    setLayout(null);
         setBackground(new Color(25, 25, 25));
 
-        // animation
+        createUI(controller);
+        startAnimation();
+    }
+    
+    private void createUI(GameController controller) {
+        JLabel title = createTitleLabel();
+        JButton startButton = createStartButton(controller);
+        
+        add(title);
+        add(startButton);
+    }
+    
+    private JLabel createTitleLabel() {
+        JLabel title = new JLabel("AIM TRAINER", SwingConstants.CENTER);
+        title.setFont(new Font("Verdana", Font.BOLD, 48));
+        title.setForeground(Color.WHITE);
+        title.setBounds(150, 150, 500, 80);
+        return title;
+    }
+    
+    private JButton createStartButton(GameController controller) {
+        JButton startButton = new JButton("START");
+        startButton.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        startButton.setBackground(new Color(200, 50, 50));
+        startButton.setForeground(Color.WHITE);
+        startButton.setFocusPainted(false);
+        startButton.setBounds(300, 400, 200, 70);
+        startButton.addActionListener(e -> controller.startGameWithCountdown());
+        return startButton;
+    }
+    
+    private void startAnimation() {
         timer = new Timer(50, e -> {
             if (growing) circleSize += 2;
             else circleSize -= 2;

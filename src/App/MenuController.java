@@ -1,80 +1,54 @@
 package App;
 
-import App.GameFrame;
 import javax.swing.*;
-import java.awt.event.*;
 
 public class MenuController {
-    private GameFrame frame;
-
-    public MenuController(GameFrame frame) {
-        this.frame = frame;
+    private GameController gameController;
+    
+    public MenuController(GameController gameController) {
+        this.gameController = gameController;
     }
 
     public JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // game
+        // Game Menu
         JMenu gameMenu = new JMenu("Game");
-
-        JMenuItem start = new JMenuItem("Start");
-        start.addActionListener(e -> frame.startGame());
-
-        JMenuItem stop = new JMenuItem("Stop");
-        stop.addActionListener(e -> JOptionPane.showMessageDialog(frame,
-            "Stop functionality not yet implemented", "Info", JOptionPane.INFORMATION_MESSAGE));
-
-        JMenuItem reset = new JMenuItem("Reset");
-        reset.addActionListener(e -> JOptionPane.showMessageDialog(frame,
-            "Reset functionality not yet implemented", "Info", JOptionPane.INFORMATION_MESSAGE));
-
-        JMenuItem exit = new JMenuItem("Exit");
-        exit.addActionListener(e -> System.exit(0));
-
-        gameMenu.add(start);
-        gameMenu.add(stop);
-        gameMenu.add(reset);
+        gameMenu.add(createMenuItem("Start", e -> gameController.startGameWithCountdown()));
+        gameMenu.add(createMenuItem("Stop", e -> gameController.stopGame()));
+        gameMenu.add(createMenuItem("Reset", e -> gameController.resetGame()));
         gameMenu.addSeparator();
-        gameMenu.add(exit);
+        gameMenu.add(createMenuItem("Exit", e -> System.exit(0)));
 
-        // view
-        JMenu viewMenu = new JMenu("View");
-        JCheckBoxMenuItem showInfo = new JCheckBoxMenuItem("Show Info Panel", true);
-        showInfo.addActionListener(e -> frame.toggleInfoPanel(showInfo.isSelected()));
-        viewMenu.add(showInfo);
-
-        // difficulty
+        // Difficulty Menu
         JMenu difficultyMenu = new JMenu("Difficulty");
-        JMenuItem easy = new JMenuItem("Easy");
-        easy.addActionListener(e -> frame.setDifficulty("easy"));
-        JMenuItem normal = new JMenuItem("Normal");
-        normal.addActionListener(e -> frame.setDifficulty("normal"));
-        JMenuItem hard = new JMenuItem("Hard");
-        hard.addActionListener(e -> frame.setDifficulty("hard"));
+        difficultyMenu.add(createMenuItem("Easy", e -> gameController.setDifficulty("easy")));
+        difficultyMenu.add(createMenuItem("Normal", e -> gameController.setDifficulty("normal")));
+        difficultyMenu.add(createMenuItem("Hard", e -> gameController.setDifficulty("hard")));
 
-        difficultyMenu.add(easy);
-        difficultyMenu.add(normal);
-        difficultyMenu.add(hard);
-
-        // help 
+        // Help Menu
         JMenu helpMenu = new JMenu("Help");
-        JMenuItem about = new JMenuItem("About");
-        about.addActionListener(e ->
-            JOptionPane.showMessageDialog(
-                frame,
-                "Aim Trainer Game v1.0\nCreated by Group 4",
-                "About",
-                JOptionPane.INFORMATION_MESSAGE
-            )
-        );
-        helpMenu.add(about);
+        helpMenu.add(createMenuItem("About", e -> showAboutDialog()));
 
-        // all menus 
         menuBar.add(gameMenu);
-        menuBar.add(viewMenu);
         menuBar.add(difficultyMenu);
         menuBar.add(helpMenu);
 
         return menuBar;
+    }
+    
+    private JMenuItem createMenuItem(String text, java.awt.event.ActionListener action) {
+        JMenuItem menuItem = new JMenuItem(text);
+        menuItem.addActionListener(action);
+        return menuItem;
+    }
+    
+    private void showAboutDialog() {
+        JOptionPane.showMessageDialog(
+            null,
+            "Aim Trainer Game v1.0\nCreated by Group 4",
+            "About",
+            JOptionPane.INFORMATION_MESSAGE
+        );
     }
 }
