@@ -13,6 +13,7 @@ public class GameController {
     private int score = 0;
     private int timeLeft = 30;
     private double difficultyMultiplier = 1.0;
+    private String currentDifficulty = "Normal";
     
     public GameController(GameFrame frame) {
         this.frame = frame;
@@ -96,9 +97,13 @@ public class GameController {
     }
     
     private void startActualGame() {
+        initializeGameState();
+            setDifficulty(currentDifficulty);
+      
         frame.getCountdownOverlay().setVisible(false);
         initializeGameState();
         frame.getGamePanel().getTarget().moveTargetRandom();
+        startGameTimer();
     }
     
     private void initializeGameState() {
@@ -109,12 +114,38 @@ public class GameController {
     
     private void resetGameState() {
         score = 0;
-        timeLeft = 30;
+
+        switch (currentDifficulty) {
+            case "Easy" -> timeLeft = 45;
+            case "Normal" -> timeLeft = 30;
+            case "Hard" -> timeLeft = 20;
+            default -> timeLeft = 30;
+        }
     }
     
     private void stopTimers() {
         if (countdownTimer != null && countdownTimer.isRunning()) countdownTimer.stop();
-    } //ADD THE STOP TIMER FOR THE COUNTDOWN IN GAME
+        if (gameTimer != null && gameTimer.isRunning()) gameTimer.stop();
+    } 
+    
+    private void startGameTimer() {
+        if (gameTimer != null && gameTimer.isRunning()) gameTimer.stop();
+
+        gameTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateUI();
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    JOptionPane.showMessageDialog(frame, "Time’s up! Your score: " + score);
+                    stopGame();
+                }
+            }
+        });
+        gameTimer.start();
+    }
     
     private void updateUI() {
         frame.getGamePanel().updateScore(score);
@@ -122,11 +153,42 @@ public class GameController {
     }
     
     public void setDifficulty(String level) {
-        frame.getGamePanel().getTarget().setDifficulty(level);
-        frame.getGamePanel().updateDifficulty(level);
+        this.currentDifficulty = level.toLowerCase();
         
-        resetGame();
+        frame.getGamePanel().getTarget().setDifficulty(currentDifficulty);
+        frame.getGamePanel().updateDifficulty(currentDifficulty);
+        frame.getGamePanel().revalidate();
+        frame.getGamePanel().repaint();
+
+        switch (currentDifficulty) {
+            case "Easy" -> {
+                difficultyMultiplier = 0.8;
+                timeLeft = 40;
+            }
+            case "Normal" -> {
+                difficultyMultiplier = 1.0;
+                timeLeft = 30;
+            }
+            case "Hard" -> {
+                difficultyMultiplier = 1.5;
+                timeLeft = 20;
+            }
+        }
+
+        frame.getGamePanel().getTarget().setDifficulty(currentDifficulty);
+        updateUI();
+        
+    if (!isGameRunning()) {
+        JOptionPane.showMessageDialog(
+            frame,
+            "Difficulty set to " + currentDifficulty.toUpperCase() +
+            "\nTime limit: " + timeLeft + " seconds",
+            "Difficulty Changed",
+            JOptionPane.INFORMATION_MESSAGE
+        );
     }
+}    
+    
     
     // Getters
     public boolean isGameRunning() { return gameRunning; }

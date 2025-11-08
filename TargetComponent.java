@@ -47,13 +47,13 @@ public class TargetComponent extends JPanel {
     // KEEP THIS METHOD - it's called by GameController
     public void setDifficulty(String difficulty) {
     switch(difficulty.toLowerCase()) {
-        case "easy":
+        case "Easy":
             targetSize = 60;
             break;
-        case "normal":
+        case "Normal":
             targetSize = 40;
             break;
-        case "hard":
+        case "Hard":
             targetSize = 20;
             break;
         default:
