@@ -14,6 +14,7 @@ public class TargetComponent extends JPanel {
     private Random rand = new Random();
     private boolean targetVisible = true;
     private GameController controller;
+    private Timer hitEffectTimer;
     
     public TargetComponent(GameController controller) {
         this.controller = controller;
@@ -39,18 +40,33 @@ public class TargetComponent extends JPanel {
     }
     
     private boolean isHit(int mouseX, int mouseY) {
-        double distance = Math.sqrt(Math.pow(mouseX - (targetX + targetSize / 2), 2) +
-                                 Math.pow(mouseY - (targetY + targetSize / 2), 2));
-        return distance <= targetSize / 2;
+        if (!targetVisible) {
+            return false;
+        }
+
+        double centerX = targetX + targetSize / 2.0;
+        double centerY = targetY + targetSize / 2.0;
+        double distance = Math.sqrt(Math.pow(mouseX - centerX, 2)
+                + Math.pow(mouseY - centerY, 2));
+        return distance <= targetSize / 2.0;
     }
     
-    // KEEP THIS METHOD - it's called by GameController
-    public void setDifficulty(double multiplier) {
-        this.difficultyMultiplier = multiplier;
-        repaint(); // Redraw with new size
+    public void setDifficulty(String difficulty) {
+        targetSize = switch (difficulty.toLowerCase()) {
+            case "easy" ->
+                100;
+            case "normal" ->
+                60;
+            case "hard" ->
+                40;
+            default -> {
+                System.err.println("Unknown difficulty: " + difficulty);
+                yield 60;
+            }
+        };
+        repaint();
     }
-    
-    
+      
     public void resetTarget() {
         int centerX = (getWidth() - targetSize) / 2;
         int centerY = (getHeight() - targetSize) / 2;
@@ -76,15 +92,19 @@ public class TargetComponent extends JPanel {
     }
 
     private void flashHitEffect() {
+        if (hitEffectTimer != null && hitEffectTimer.isRunning()) {
+            hitEffectTimer.stop();
+        }
+
         targetColor = Color.GREEN;
         repaint();
-        
-        Timer t = new Timer((int)(150 / difficultyMultiplier), e -> {
+
+        hitEffectTimer = new Timer((int) (150 / difficultyMultiplier), e -> {
             targetColor = Color.RED;
             repaint();
-            ((Timer) e.getSource()).stop();
+            hitEffectTimer.stop();
         });
-        t.start();
+        hitEffectTimer.start();
     }
 
     @Override

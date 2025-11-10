@@ -22,9 +22,9 @@ public class MenuController {
 
         // Difficulty Menu
         JMenu difficultyMenu = new JMenu("Difficulty");
-        difficultyMenu.add(createMenuItem("Easy", e -> gameController.setDifficulty("easy")));
-        difficultyMenu.add(createMenuItem("Normal", e -> gameController.setDifficulty("normal")));
-        difficultyMenu.add(createMenuItem("Hard", e -> gameController.setDifficulty("hard")));
+        difficultyMenu.add(createMenuItem("Easy", e -> gameController.setDifficulty("Easy")));
+        difficultyMenu.add(createMenuItem("Normal", e -> gameController.setDifficulty("Normal")));
+        difficultyMenu.add(createMenuItem("Hard", e -> gameController.setDifficulty("Hard")));
 
         // Help Menu
         JMenu helpMenu = new JMenu("Help");

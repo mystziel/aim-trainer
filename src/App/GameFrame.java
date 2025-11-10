@@ -57,6 +57,11 @@ public class GameFrame extends JFrame {
     }
     
     // Getters
-    public GamePanel getGamePanel() { return gamePanel; }
+    public GamePanel getGamePanel() { 
+        if (gamePanel == null) {
+            throw new IllegalStateException("GamePanel not initialized");
+        }
+        return gamePanel; 
+    }
     public CountdownOverlay getCountdownOverlay() { return countdownOverlay; }
 }

@@ -12,7 +12,7 @@ public class GameController {
     private boolean gameRunning = false;
     private int score = 0;
     private int timeLeft = 30;
-    private double difficultyMultiplier = 1.0;
+    private String currentDifficulty = "Normal";
     
     public GameController(GameFrame frame) {
         this.frame = frame;
@@ -22,7 +22,7 @@ public class GameController {
         if (!gameRunning) {
             gameRunning = true;
             frame.showGameScreen();
-            startCountdownStart();
+            startCountdown();
         }
     }
     
@@ -30,106 +30,187 @@ public class GameController {
         if (gameRunning) {
             gameRunning = false;
             stopTimers();
-            frame.getGamePanel().getTarget().setTargetVisible(false);
-            frame.getCountdownOverlay().setVisible(false);
+            resetTargetVisibility();
             frame.showSplashScreen();
+            resetTimeForCurrentDifficulty();
+            updateUI();
         }
     }
-    
+
     public void resetGame() {
         if (gameRunning) {
-            startCountdownStart();
+            startCountdown();
         } else {
             startGameWithCountdown();
         }
     }
-    
-    public void setDifficulty(String level) {
-        switch (level.toLowerCase()) {
-            case "easy" -> difficultyMultiplier = 0.8;
-            case "normal" -> difficultyMultiplier = 1.0;
-            case "hard" -> difficultyMultiplier = 1.5;
-        }
-        frame.getGamePanel().getTarget().setDifficulty(difficultyMultiplier);
-    }
-    
+
     public void onTargetHit() {
         score++;
         frame.getGamePanel().updateScore(score);
     }
     
-    //Countdown for reset
-    private void startCountdownStart() {
-        stopTimers();
+    public void setDifficulty(String level) {
+        this.currentDifficulty = level;
+        applyDifficultySettings();
+        updateGameComponents();
         
+        if (!isGameRunning()) {
+            showDifficultyChangeMessage();
+        } else {
+            restartGameTimer();
+        }
+    }
+    
+    public boolean isGameRunning() { 
+        return gameRunning; 
+    }
+    
+    // Private methods
+    private void startCountdown() {
+        stopTimers();
+        resetGameState();
+        setupCountdown();
+    }
+    
+    private void setupCountdown() {
         frame.getGamePanel().getTarget().setEnabled(false);
         frame.getGamePanel().getTarget().setTargetVisible(false);
-        resetGameState();
-        updateUI();
         
         countdownValue = 3;
         frame.getCountdownOverlay().showMessage("Get ready...");
         
-        Timer readyTimer = new Timer(800, e -> {
-            ((Timer) e.getSource()).stop();
-            startNumberCountdown();
-        });
-        readyTimer.setRepeats(false);
+        Timer readyTimer = createTimer(800, e -> startNumberCountdown(), false);
         readyTimer.start();
     }
     
     private void startNumberCountdown() {
-        countdownTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (countdownValue > 0) {
-                    frame.getCountdownOverlay().showMessage(countdownValue + "");
-                    countdownValue--;
-                } else {
-                    countdownTimer.stop();
-                    frame.getCountdownOverlay().showMessage("GO!");
-                    
-                    Timer goTimer = new Timer(500, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent evt) {
-                            ((Timer) evt.getSource()).stop();
-                            startActualGame();
-                        }
-                    });
-                    goTimer.setRepeats(false);
-                    goTimer.start();
-                }
-            }
-        });
+        countdownTimer = createTimer(1000, new CountdownAction(), true);
         countdownTimer.start();
     }
     
     private void startActualGame() {
-        frame.getCountdownOverlay().setVisible(false);
         initializeGameState();
+        frame.getCountdownOverlay().setVisible(false);
         frame.getGamePanel().getTarget().moveTargetRandom();
+        startGameTimer();
     }
     
     private void initializeGameState() {
-        updateUI();
         frame.getGamePanel().getTarget().setEnabled(true);
         frame.getGamePanel().getTarget().setTargetVisible(true);
+        updateUI();
     }
     
     private void resetGameState() {
         score = 0;
-        timeLeft = 30;
+        resetTimeForCurrentDifficulty();
+        updateUI();
+    }
+    
+    private void resetTimeForCurrentDifficulty() {
+        timeLeft = switch (currentDifficulty.toLowerCase()) {
+            case "easy" -> 45;
+            case "hard" -> 20;
+            default -> 30;
+        };
     }
     
     private void stopTimers() {
-        if (countdownTimer != null && countdownTimer.isRunning()) countdownTimer.stop();
-    } //ADD THE STOP TIMER FOR THE COUNTDOWN IN GAME
+        if (countdownTimer != null) {
+            countdownTimer.stop();
+        }
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+    }
+    
+    private void startGameTimer() {
+        stopTimers();
+        
+        gameTimer = createTimer(1000, new GameTimerAction(), true);
+        gameTimer.start();
+    }
+    
+    private void restartGameTimer() {
+        stopTimers();
+        startGameTimer();
+    }
     
     private void updateUI() {
+        if (timeLeft < 0) timeLeft = 0;
         frame.getGamePanel().updateScore(score);
         frame.getGamePanel().updateTime(timeLeft);
     }
     
-    // Getters
-    public boolean isGameRunning() { return gameRunning; }
+    private void applyDifficultySettings() {
+        switch (currentDifficulty.toLowerCase()) {
+            case "easy" -> {
+                timeLeft = 45;
+            }
+            case "normal" -> {
+                timeLeft = 30;
+            }
+            case "hard" -> {
+                timeLeft = 20;
+            }
+        }
+    }
+    
+    private void updateGameComponents() {
+        frame.getGamePanel().getTarget().setDifficulty(currentDifficulty);
+        frame.getGamePanel().updateDifficulty(currentDifficulty);
+        updateUI();
+    }
+    
+    private void showDifficultyChangeMessage() {
+        JOptionPane.showMessageDialog(
+            frame,
+            "Difficulty set to " + currentDifficulty.toUpperCase()
+            + "\nTime limit: " + timeLeft + " seconds",
+            "Difficulty Changed",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+    
+    private void resetTargetVisibility() {
+        frame.getGamePanel().getTarget().setTargetVisible(false);
+        frame.getCountdownOverlay().setVisible(false);
+    }
+    
+    private Timer createTimer(int delay, ActionListener listener, boolean repeats) {
+        Timer timer = new Timer(delay, listener);
+        timer.setRepeats(repeats);
+        return timer;
+    }
+    
+    private class CountdownAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (countdownValue > 0) {
+                frame.getCountdownOverlay().showMessage(countdownValue + "");
+                countdownValue--;
+            } else {
+                countdownTimer.stop();
+                frame.getCountdownOverlay().showMessage("GO!");
+                
+                Timer goTimer = createTimer(500, evt -> startActualGame(), false);
+                goTimer.start();
+            }
+        }
+    }
+    
+    private class GameTimerAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateUI();
+            } else {
+                gameTimer.stop();
+                JOptionPane.showMessageDialog(frame, "Time's up! Your score: " + score);
+                stopGame();
+            }
+        }
+    }
 }

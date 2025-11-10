@@ -6,7 +6,9 @@ import java.awt.*;
 public class GamePanel extends JPanel {
     private JLabel scoreLabel;
     private JLabel timeLabel;
+    private JLabel difficultyLabel;
     private TargetComponent target;
+    private GameController gameController;
     
     public GamePanel(GameController controller) {
         setLayout(new BorderLayout());
@@ -22,7 +24,9 @@ public class GamePanel extends JPanel {
         
         scoreLabel = createStyledLabel("Score: 0");
         timeLabel = createStyledLabel("Time: 30s");
+        difficultyLabel = createStyledLabel("Difficulty: Easy");
         
+        infoBar.add(difficultyLabel);
         infoBar.add(scoreLabel);
         infoBar.add(timeLabel);
         add(infoBar, BorderLayout.NORTH);
@@ -48,7 +52,13 @@ public class GamePanel extends JPanel {
         timeLabel.setText("Time: " + time + "s");
     }
     
+    public void updateDifficulty(String difficulty) {
+            difficultyLabel.setText("Difficulty: " + difficulty);
+    }
+    
     public TargetComponent getTarget() {
         return target;
     }
+    
+    
 }
