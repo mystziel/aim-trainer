@@ -66,7 +66,6 @@ public class GameController {
         return gameRunning; 
     }
     
-    // Private methods
     private void startCountdown() {
         stopTimers();
         resetGameState();
@@ -91,6 +90,7 @@ public class GameController {
     
     private void startActualGame() {
         initializeGameState();
+        setDifficulty(currentDifficulty);
         frame.getCountdownOverlay().setVisible(false);
         frame.getGamePanel().getTarget().moveTargetRandom();
         startGameTimer();
@@ -111,6 +111,7 @@ public class GameController {
     private void resetTimeForCurrentDifficulty() {
         timeLeft = switch (currentDifficulty.toLowerCase()) {
             case "easy" -> 45;
+            case "normal" -> 30;
             case "hard" -> 20;
             default -> 30;
         };
